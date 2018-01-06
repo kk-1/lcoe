@@ -1,0 +1,379 @@
+<html>
+<body>
+
+
+	
+<h1>Simple Financial Adviser for Energy Cost</h1>
+
+<h2>Please Enter parameters and click the "Calculate" button: </h2>
+<form id="lcoe-parameters">
+
+<fieldset>
+        Installation cost ($): <input type="number" name="instcost" id="inst_cost" value="12000"/>
+</fieldset>  
+
+<fieldset>
+        Retail price ($ per kWh): <input type="number" name="rp" id="retail_price" value="0.11"/>
+</fieldset>  
+
+<fieldset>
+        Useful life time (years): <input type="number" name="life" id="life" value="20"/>
+</fieldset>  
+
+
+<fieldset>
+        Annual operational and maintenance cost ($ per year): <input type="number" name="aom" id="aom" value="120"/>
+</fieldset>  
+
+
+
+<fieldset>
+        Annual energy output (kWh per year): <input type="number" name="aeo" id="aeo" value="5280"/>
+</fieldset>  
+
+
+<fieldset>
+        Rebates ($): <input type="number" name="rebate" id="rebate" value="4000"/>
+</fieldset>  
+
+
+
+<fieldset>
+        Annual Fuel cost ($ per year): <input type="number" name="fuel" id="fuel" value="0"/>
+</fieldset>  
+
+
+
+
+<fieldset>
+        Discount rate: <input type="number" name="disc_rate" id="disc_rate" value="0.02"/>
+</fieldset>  
+
+
+
+
+<fieldset>
+        Inflation rate: <input type="number" name="inf_rate" id="inf_rate" value="0"/>
+</fieldset>  
+
+
+<fieldset>
+        Tc: <input type="number" name="tc" id="tc" value="1"/>
+</fieldset>  
+
+
+<fieldset>
+        Tp: <input type="number" name="tp" id="tp" value="20"/>
+</fieldset>  
+
+
+        <input type="button" value="Calculate"  onclick="var result = 
+        energy_cost(
+        document.getElementById('inst_cost').value, 
+        document.getElementById('life').value,
+        document.getElementById('retail_price').value,
+        document.getElementById('disc_rate').value,
+        document.getElementById('aeo').value,
+        document.getElementById('aom').value,
+        document.getElementById('rebate').value,
+        document.getElementById('inf_rate').value,
+        document.getElementById('tc').value,
+        document.getElementById('tp').value,
+        document.getElementById('fuel').value
+        ); 
+        " />
+        
+         
+<h2>Calculated Parameters: </h2>
+ 
+<fieldset>
+         &#945: <output type="number" name="alpha" id="alpha"/>
+</fieldset>
+
+<fieldset>
+        PVAF: <output type="number" name="pvaf" id="pvaf"/>
+</fieldset>
+
+<fieldset>
+        Annual Net Savings ($): <output type="number" name="annual_net_eng_savings" id="annual_net_eng_savings"/>
+</fieldset>
+
+<fieldset>
+        Simple Payback period (years): <output type="number" name="simple_payback_years" id="simple_payback_years"/>
+</fieldset>
+
+<fieldset>
+        PV Savings ($): <output type="number" name="PV_savings" id="PV_savings"/>
+</fieldset>
+
+
+<fieldset>
+        NPV ($): <output type="number" name="npv" id="npv"/>
+</fieldset>
+
+<fieldset>
+        LCOE ($ per kWh): <output type="number" name="lcoe" id="lcoe"/>
+</fieldset>
+
+
+<h2>Simple Payback Analysis: </h2>
+<fieldset>
+        <output type="text" name="spa" id="spa"/>
+</fieldset>
+
+
+
+<h2>NPV Analysis: </h2>
+<fieldset>
+        <output type="text" name="npva" id="npva"/>
+</fieldset>
+
+
+
+<h2>LCOE Analysis: </h2>
+<fieldset>
+        <output type="text" name="lcoea" id="lcoea"/>
+</fieldset>
+
+
+
+
+</form>
+
+
+<script>
+
+function energy_cost( inst_cost,
+    life,
+    retail_price,
+    disc_rate,
+    aeo,
+    aom,
+    rebate,
+    inf_rate,
+    tc,
+    tp,
+    fuel)
+{
+var    finst_cost=parseFloat(inst_cost);
+var    flife=parseFloat(life);
+var   fretail_price=parseFloat(retail_price);
+var     fdisc_rate=parseFloat(disc_rate);
+var    faeo=parseFloat(aeo);
+var     faom=parseFloat(aom);
+var     frebate=parseFloat(rebate);
+var    finf_rate=parseFloat(inf_rate);
+var    ftc=parseFloat(tc);
+var    ftp=parseFloat(tp);
+var    ffuel=parseFloat(fuel);
+
+
+
+ var alpha = (1 + finf_rate) / (1 + fdisc_rate);   
+  document.getElementById('alpha').textContent = alpha.toFixed(4);
+ var  pvaf = Math.pow(alpha, ftc) * ( (1 - Math.pow(alpha, ftp)) / (1 - alpha) ); 
+ document.getElementById('pvaf').textContent = pvaf.toFixed(3);
+
+
+   var annual_net_eng_savings = (faeo * fretail_price) - (faom + ffuel); 
+    document.getElementById('annual_net_eng_savings').textContent = annual_net_eng_savings.toFixed(3);
+   
+    
+    var simple_payback_years = (finst_cost - frebate) / annual_net_eng_savings ;
+    document.getElementById('simple_payback_years').textContent = simple_payback_years.toFixed(3);
+    
+   var  PV_savings =  annual_net_eng_savings * pvaf; 
+    document.getElementById('PV_savings').textContent = PV_savings.toFixed(3);
+    
+
+
+   var  npv = PV_savings - (finst_cost - frebate);
+    
+    document.getElementById('npv').textContent = npv.toFixed(3);
+    
+   var  lcoe = ((finst_cost - frebate) + (faom + ffuel) * pvaf)   / (faeo * pvaf) ;
+ document.getElementById('lcoe').textContent = lcoe.toFixed(4);
+
+ 
+ var newline = "\r\n";
+var nbsp = "\u00a0";
+// ******************************* SIMPLE PAYBACK ANALYSIS ******************************
+//  
+//  
+
+if ( (annual_net_eng_savings > 0) && ((simple_payback_years - flife) <= 0) ) {
+
+document.getElementById('spa').textContent = "Not too bad: " + simple_payback_years.toFixed(3) + 
+" years to payback, which is less than the life time of " + flife + " years";
+}
+
+    else { 
+   
+    document.getElementById('spa').style.whiteSpace = "pre"; 
+    if (annual_net_eng_savings > 0)
+        document.getElementById('spa').textContent = "Sorry but you need "+ simple_payback_years.toFixed(3) + " years to payback, which is longer than the life: " + flife + "\r\n" + "Your options for break-even are, when keeping all things same but changing single parameter:" + "\r\n";
+    else document.getElementById('spa').textContent = "Sorry but you are losing. Annual net savings is negative: $"+ annual_net_eng_savings.toFixed(3) + "\r\n" + "Your options for break-even are, when keeping all things same but changing single parameter:" + "\r\n";    
+
+        var xinst_cost = flife * (faeo * fretail_price - (faom + ffuel)) + frebate;
+        
+        var xrebate = finst_cost - flife * (faeo * fretail_price - (faom + ffuel));
+        
+        var xaeo = ( (faom + ffuel) + ((finst_cost - frebate) / flife)) / fretail_price;
+        
+        var xretail_price = ( (faom + ffuel) + ((finst_cost - frebate) / flife)) / faeo;
+        
+        var xaom = faeo * fretail_price - ((finst_cost - frebate) / flife);
+        
+        if (ffuel > 0.0) {
+             var xfuel = xaom - faom;
+             var xaom = xaom - ffuel;
+        }
+        
+        document.getElementById('spa').textContent += "1-) Find technology with payback life at least "+ flife +" years\r\n"+
+        "2-) Find technology with installed cost at most $" + xinst_cost.toFixed(3) + "\r\n"+
+        "3-) Find technology with rebates at least $"+ xrebate.toFixed(3)+"\r\n"+
+        "4-) Find technology with annual energy output at least "+ xaeo.toFixed(3)+" kWh per year\r\n"+
+        "5-) Wait for the electricity price to rise to $"+xretail_price.toFixed(3)+" per kWh\r\n";
+
+        if (xaom >= 0.0)
+            document.getElementById('spa').textContent += "*** Find technology with annual operational and maintenance cost at most $"+xaom.toFixed(3)+"\r\n";
+        else document.getElementById('spa').textContent += "*** All the other things are same, there is no good operational and maintenance cost!\r\n";
+        if ((ffuel > 0.0) && (xfuel >= 0.0))
+            document.getElementById('spa').textContent += "*** Find technology with annual fuel cost at most $"+xfuel.toFixed(3)+"\r\n";
+        else document.getElementById('spa').textContent += "*** All the other things are same, there is no good fuel cost!\r\n";
+    }
+
+    
+// **************************************************************************************
+//  
+//  
+//
+//  
+// ********************************* NPV ANALYSIS ***************************************
+//  
+// 
+ if (npv  > 0.0  ) {
+ 
+document.getElementById('npva').textContent = "Not too bad! NPV is positive: $" + npv.toFixed(3);
+
+ }
+ 
+  else{
+  
+  document.getElementById('npva').style.whiteSpace = "pre";
+        document.getElementById('npva').textContent = "Not good! NPV is negative: $"+ npv.toFixed(3) + "\r\n" + "Your options for break-even are, when keeping all things same but changing single parameter:" + "\r\n";
+        
+
+        var xinst_cost = (faeo * fretail_price - (faom + ffuel)) * pvaf+ frebate;
+        
+        var xrebate = finst_cost - pvaf * (faeo * fretail_price - (faom + ffuel));
+        
+        var xaeo = ( (faom + ffuel) + ((finst_cost - frebate) / pvaf)) / fretail_price;
+        
+        var xretail_price = ( (faom + ffuel) + ((finst_cost - frebate) / pvaf)) / faeo;
+        
+        var xaom = faeo * fretail_price - ((finst_cost - frebate) / pvaf);
+        
+        var xpvaf = (finst_cost - frebate) / ((faeo * fretail_price - (faom + ffuel)));
+        
+        var xtc = (Math.log(xpvaf) + Math.log (1-alpha) - Math.log(1-Math.pow(alpha, tp)) ) / Math.log(alpha);
+        
+        if (ffuel > 0.0){
+             var xfuel = xaom - faom;
+             var xaom = xaom - ffuel;
+        }
+      
+        
+        document.getElementById('npva').textContent += "1-) Find technology with pvaf="+ xpvaf.toFixed(3) +"\r\n"+
+        "2-) Find technology with installed cost at most $" + xinst_cost.toFixed(3) + "\r\n"+
+        "3-) Find technology with rebates at least $"+ xrebate.toFixed(3)+"\r\n"+
+        "4-) Find technology with annual energy output at least "+ xaeo.toFixed(3)+" kWh per year\r\n"+
+        "5-) Wait for the electricity price to rise to $"+xretail_price.toFixed(4)+" per kWh\r\n";
+
+        
+        if (xtc > 1.0) document.getElementById('npva').textContent += "*** Find technology with Tc="+ xtc.toFixed(3)+"\r\n";
+        else document.getElementById('npva').textContent += "*** All the other things are same, there is no good Tc value you can choose!\r\n";
+        
+        if (xaom >= 0.0)
+            document.getElementById('npva').textContent += "*** Find technology with annual operational and maintenance cost at most $"+xaom.toFixed(3)+"\r\n";
+        else document.getElementById('npva').textContent += "*** All the other things are same, there is no good operational and maintenance cost!\r\n";
+        if ((ffuel > 0.0) && (xfuel >= 0.0))
+            document.getElementById('npva').textContent += "*** Find technology with annual fuel cost at most $"+xfuel.toFixed(3)+"\r\n";
+        else document.getElementById('npva').textContent += "*** All the other things are same, there is no good fuel cost!\r\n";
+           
+        
+        }
+
+// **************************************************************************************
+//  
+// 
+//  
+//  
+//  
+//  
+// *********************************** LCOE ANALYSIS ************************************
+//  
+//  
+
+if (lcoe  <= fretail_price  ) {
+ 
+document.getElementById('lcoea').textContent = "Not too bad! lcoe ($"+ lcoe.toFixed(4) +" per kWh) is cheaper than retail price of $"+ fretail_price.toFixed(4)+" per kWh\r\n";
+
+ }
+ 
+  else{
+  
+  document.getElementById('lcoea').style.whiteSpace = "pre";
+        document.getElementById('lcoea').textContent = "Not good! lcoe ($"+ lcoe.toFixed(4) +" per kWh) is more expensive than retail price of $"+ fretail_price.toFixed(4)+" per kWh"+ "\r\n" + "Your options for break-even are, when keeping all things same but changing single parameter:" + "\r\n";
+        
+
+        var xinst_cost = (faeo * fretail_price - (faom + ffuel)) * pvaf + frebate;
+        
+        var xrebate = finst_cost - pvaf * (faeo * fretail_price - (faom + ffuel));
+        
+        var xaeo = ( (faom + ffuel) + ((finst_cost - frebate) / pvaf)) / fretail_price;
+        
+        var xretail_price = ( (faom + ffuel) + ((finst_cost - frebate) / pvaf)) / faeo;
+        
+        var xaom = faeo * fretail_price - ((finst_cost - frebate) / pvaf);
+        
+        var xpvaf = (finst_cost - frebate) / ((faeo * fretail_price - (faom + ffuel)));
+        
+        var xtc = (Math.log(xpvaf) + Math.log (1-alpha) - Math.log(1-Math.pow(alpha, tp)) ) / Math.log(alpha);
+        
+        if (ffuel > 0.0){
+             var xfuel = xaom - faom;
+             var xaom = xaom - ffuel;
+        }
+      
+        
+        document.getElementById('lcoea').textContent += "1-) Find technology with pvaf="+ xpvaf.toFixed(3) +"\r\n"+
+        "2-) Find technology with installed cost at most $" + xinst_cost.toFixed(3) + "\r\n"+
+        "3-) Find technology with rebates at least $"+ xrebate.toFixed(3)+"\r\n"+
+        "4-) Find technology with annual energy output at least "+ xaeo.toFixed(3)+" kWh per year\r\n"+
+        "5-) Wait for the electricity price to rise to $"+xretail_price.toFixed(4)+" per kWh\r\n";
+
+        
+        if (xtc > 1.0) document.getElementById('lcoea').textContent += "*** Find technology with Tc="+ xtc.toFixed(3)+"\r\n";
+        else document.getElementById('lcoea').textContent += "*** All the other things are same, there is no good Tc value you can choose!\r\n";
+        
+        if (xaom >= 0.0)
+            document.getElementById('lcoea').textContent += "*** Find technology with annual operational and maintenance cost at most $"+xaom.toFixed(3)+"\r\n";
+        else document.getElementById('lcoea').textContent += "*** All the other things are same, there is no good operational and maintenance cost!\r\n";
+        if ((ffuel > 0.0) && (xfuel >= 0.0))
+            document.getElementById('lcoea').textContent += "*** Find technology with annual fuel cost at most $"+xfuel.toFixed(3)+"\r\n";
+        else document.getElementById('lcoea').textContent += "*** All the other things are same, there is no good fuel cost!\r\n";
+           
+        
+        }
+
+
+// **************************************************************************************
+ 
+ 
+
+}
+</script>
+ 
+</body>
+</html>
